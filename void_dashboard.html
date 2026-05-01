@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<title>VOID</title>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{--accent:#4ade80;--card:#080808;--border:#0f0f0f;--dim:#2a2a2a;--muted:#555;--sub:#888}
+html,body{height:100%;overflow:hidden;background:#000;color:#fff;font-family:'Space Grotesk',-apple-system,sans-serif}
+
+/* ── GRID ── */
+.app{
+  height:100vh;
+  display:grid;
+  grid-template-columns:minmax(0,2fr) minmax(0,3fr);
+  grid-template-rows:1fr 1fr;
+  gap:1px;
+  background:var(--border);
+}
+.cell{background:#000;padding:clamp(10px,1.8vw,18px);overflow:hidden;display:flex;flex-direction:column}
+
+/* LEFT COLUMN: clock spans both rows */
+.c-left{grid-column:1;grid-row:1/3;justify-content:space-between}
+
+/* RIGHT TOP: prayer */
+.c-pray{grid-column:2;grid-row:1}
+
+/* RIGHT BOTTOM: music + notes */
+.c-right{grid-column:2;grid-row:2}
+
+/* ── CLOCK ── */
+.clock{
+  font-size:clamp(44px,9vw,88px);
+  font-weight:700;
+  letter-spacing:-3px;
+  line-height:1;
+  font-variant-numeric:tabular-nums;
+}
+.clock sup{
+  font-size:clamp(11px,1.8vw,18px);
+  font-weight:500;
+  color:var(--muted);
+  letter-spacing:1px;
+  vertical-align:super;
+  margin-left:2px;
+}
+.date-str{font-size:clamp(10px,1.4vw,13px);color:var(--muted);margin-top:4px;font-weight:400}
+
+/* ── WEATHER ── */
+.wx-temp{font-size:clamp(20px,3.5vw,34px);font-weight:600;line-height:1}
+.wx-desc{font-size:clamp(10px,1.4vw,13px);color:var(--sub);margin-top:3px}
+.wx-extra{font-size:clamp(9px,1.1vw,11px);color:var(--dim);margin-top:2px}
+
+/* ── BATTERY ── */
+.bat-row{display:flex;align-items:center;gap:9px}
+.bat-icon{width:26px;height:13px;border:1.5px solid #1e1e1e;border-radius:3px;position:relative;padding:2px;flex-shrink:0}
+.bat-icon::after{content:'';position:absolute;right:-4px;top:50%;transform:translateY(-50%);width:2.5px;height:5px;background:#1e1e1e;border-radius:0 1px 1px 0}
+.bat-fill{height:100%;border-radius:1px;background:var(--accent);transition:width .4s,background .4s}
+.bat-fill.low{background:#ef4444}.bat-fill.mid{background:#facc15}
+.bat-pct{font-size:clamp(16px,2.8vw,24px);font-weight:600;line-height:1}
+.bat-status{font-size:clamp(9px,1.1vw,11px);color:var(--muted);margin-top:2px}
+
+/* ── LABEL ── */
+.lbl{font-size:8px;letter-spacing:2.5px;color:var(--dim);text-transform:uppercase;margin-bottom:8px;flex-shrink:0}
+
+/* ── PRAYERS ── */
+.prayer-grid{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:1fr 1fr;gap:5px;flex:1}
+.pi{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:6px 7px;display:flex;flex-direction:column;justify-content:center}
+.pi.next{border-color:var(--accent)}
+.pi-name{font-size:7.5px;color:var(--dim);text-transform:uppercase;letter-spacing:1px;margin-bottom:3px}
+.pi-time{font-size:clamp(11px,1.6vw,14px);font-weight:500}
+.pi.next .pi-time{color:var(--accent)}
+
+/* ── MUSIC ── */
+.music{flex-shrink:0;margin-bottom:8px}
+.m-track{font-size:clamp(11px,1.6vw,13px);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.m-artist{font-size:clamp(9px,1.2vw,11px);color:var(--muted);margin-top:1px}
+.m-bar{height:1px;background:#141414;margin:7px 0;position:relative}
+.m-fill{position:absolute;top:0;left:0;height:100%;background:#fff;width:0%;transition:width .3s}
+.m-ctrls{display:flex;align-items:center;gap:clamp(10px,2vw,22px);margin-top:2px}
+.m-btn{background:none;border:none;color:#3a3a3a;cursor:pointer;font-size:13px;padding:2px;transition:color .15s}
+.m-btn:active{color:#fff}
+.m-play{width:28px;height:28px;border-radius:50%;background:#fff;color:#000;display:flex;align-items:center;justify-content:center;font-size:12px;border:none;cursor:pointer;flex-shrink:0}
+
+/* ── NOTES ── */
+.notes{flex:1;display:flex;flex-direction:column;min-height:0}
+.note-list{list-style:none;flex:1;overflow:hidden}
+.ni{display:flex;align-items:center;gap:7px;padding:4px 0;border-bottom:1px solid #0a0a0a;font-size:clamp(10px,1.3vw,12px)}
+.ni:last-child{border-bottom:none}
+.ni-check{width:11px;height:11px;border:1px solid #222;border-radius:3px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:6.5px;color:transparent;transition:all .15s}
+.ni.done .ni-check{background:var(--accent);border-color:var(--accent);color:#000}
+.ni.done .ni-txt{text-decoration:line-through;color:var(--dim)}
+.ni-txt{flex:1;color:#aaa;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ni-del{background:none;border:none;color:#1e1e1e;cursor:pointer;font-size:14px;flex-shrink:0;transition:color .15s}
+.ni-del:hover{color:#444}
+.note-add{display:flex;gap:5px;margin-top:6px;flex-shrink:0}
+.ni-input{flex:1;background:var(--card);border:1px solid var(--border);border-radius:6px;color:#fff;padding:6px 8px;font-size:10px;outline:none;font-family:inherit}
+.ni-input::placeholder{color:var(--dim)}
+.ni-add{background:#fff;border:none;border-radius:6px;color:#000;padding:0 10px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit}
+
+/* ── PORTRAIT FALLBACK ── */
+@media(orientation:portrait){
+  .app{grid-template-columns:1fr 1fr;grid-template-rows:auto auto auto}
+  .c-left{grid-column:1/3;grid-row:1;flex-direction:row;flex-wrap:wrap;gap:16px;justify-content:space-between;align-items:flex-start}
+  .c-left > *{flex:1 1 120px}
+  .c-pray{grid-column:1;grid-row:2}
+  .c-right{grid-column:2;grid-row:2}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- LEFT: Clock + Weather + Battery -->
+  <div class="cell c-left">
+    <div>
+      <div class="clock" id="clock">--:--<sup>AM</sup></div>
+      <div class="date-str" id="date-str">—</div>
+    </div>
+    <div>
+      <div class="lbl">Weather</div>
+      <div class="wx-temp" id="wx-temp">—°C</div>
+      <div class="wx-desc" id="wx-desc">Locating…</div>
+      <div class="wx-extra" id="wx-extra"></div>
+    </div>
+    <div>
+      <div class="lbl">Battery</div>
+      <div class="bat-row">
+        <div class="bat-icon"><div class="bat-fill" id="bat-fill" style="width:80%"></div></div>
+        <div>
+          <div class="bat-pct" id="bat-pct">—%</div>
+          <div class="bat-status" id="bat-status">Checking…</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOP RIGHT: Prayers -->
+  <div class="cell c-pray">
+    <div class="lbl" id="pray-lbl">Prayer Times</div>
+    <div class="prayer-grid" id="prayer-grid"></div>
+  </div>
+
+  <!-- BOTTOM RIGHT: Music + Notes -->
+  <div class="cell c-right">
+    <div class="music">
+      <div class="lbl">Now Playing</div>
+      <div id="m-track" class="m-track">No media session</div>
+      <div id="m-artist" class="m-artist">—</div>
+      <div class="m-bar"><div class="m-fill" id="m-fill"></div></div>
+      <div class="m-ctrls">
+        <button class="m-btn" onclick="mPrev()">⏮</button>
+        <button class="m-play" id="m-play" onclick="mPlay()">▶</button>
+        <button class="m-btn" onclick="mNext()">⏭</button>
+      </div>
+    </div>
+    <div class="notes">
+      <div class="lbl">Notes</div>
+      <ul class="note-list" id="note-list"></ul>
+      <div class="note-add">
+        <input class="ni-input" id="ni-input" placeholder="Add a note…" maxlength="80">
+        <button class="ni-add" onclick="addNote()">+</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+<script>
+const DAYS=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const MONTHS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function pad(v){return String(v).padStart(2,'0')}
+
+// Clock
+function tick(){
+  const n=new Date();let h=n.getHours(),m=n.getMinutes();
+  const ap=h>=12?'PM':'AM';h=h%12||12;
+  document.getElementById('clock').innerHTML=`${h}:${pad(m)}<sup>${ap}</sup>`;
+  document.getElementById('date-str').textContent=`${DAYS[n.getDay()]}, ${MONTHS[n.getMonth()]} ${n.getDate()}`;
+}
+tick();setInterval(tick,1000);
+
+// Geo
+function geo(ok,fail){navigator.geolocation?navigator.geolocation.getCurrentPosition(ok,fail||console.warn,{timeout:8000}):fail&&fail();}
+
+// Weather
+const WMO={0:'Clear sky',1:'Mainly clear',2:'Partly cloudy',3:'Overcast',45:'Foggy',48:'Icy fog',51:'Light drizzle',53:'Drizzle',55:'Heavy drizzle',61:'Light rain',63:'Rain',65:'Heavy rain',71:'Light snow',73:'Snow',75:'Heavy snow',80:'Showers',81:'Heavy showers',95:'Thunderstorm'};
+function wxI(c){if(c<=1)return'☀️';if(c<=3)return'⛅';if(c<=48)return'🌫️';if(c<=65)return'🌧️';if(c<=75)return'❄️';if(c<=82)return'🌦️';return'⛈️';}
+geo(async pos=>{
+  const{latitude:la,longitude:lo}=pos.coords;
+  try{
+    const r=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${la}&longitude=${lo}&current=temperature_2m,weathercode,relative_humidity_2m,wind_speed_10m&temperature_unit=celsius&wind_speed_unit=kmh`);
+    const d=await r.json(),c=d.current,t=Math.round(c.temperature_2m);
+    document.getElementById('wx-temp').textContent=`${t}°C`;
+    document.getElementById('wx-desc').textContent=`${wxI(c.weathercode)} ${WMO[c.weathercode]||''}`;
+    document.getElementById('wx-extra').textContent=`${c.relative_humidity_2m}% · ${Math.round(c.wind_speed_10m)} km/h wind`;
+  }catch{document.getElementById('wx-desc').textContent='Unavailable';}
+},()=>document.getElementById('wx-desc').textContent='Location denied');
+
+// Prayer Times
+const PNAMES=['Fajr','Dhuhr','Asr','Maghrib','Isha','Midnight'];
+geo(async pos=>{
+  const{latitude:la,longitude:lo}=pos.coords;
+  try{
+    const n=new Date(),dd=pad(n.getDate()),mm=pad(n.getMonth()+1),yyyy=n.getFullYear();
+    const r=await fetch(`https://api.aladhan.com/v1/timings/${dd}-${mm}-${yyyy}?latitude=${la}&longitude=${lo}&method=2`);
+    const d=await r.json(),t=d.data.timings;
+    renderPrayers({Fajr:t.Fajr,Dhuhr:t.Dhuhr,Asr:t.Asr,Maghrib:t.Maghrib,Isha:t.Isha,Midnight:t.Midnight});
+  }catch{renderPrayers(null);}
+},()=>renderPrayers(null));
+
+function toMin(s){if(!s)return 0;const[h,m]=s.split(':').map(Number);return h*60+m;}
+function renderPrayers(times){
+  const n=new Date(),nowMin=n.getHours()*60+n.getMinutes();
+  let ni=-1;
+  if(times)for(let i=0;i<PNAMES.length;i++){if(toMin(times[PNAMES[i]])>nowMin){ni=i;break;}}
+  if(ni>=0)document.getElementById('pray-lbl').textContent=`Prayer · ${PNAMES[ni]} next`;
+  document.getElementById('prayer-grid').innerHTML=PNAMES.map((p,i)=>`
+    <div class="pi${i===ni?' next':''}">
+      <div class="pi-name">${p}</div>
+      <div class="pi-time">${times?times[p]:'--:--'}</div>
+    </div>`).join('');
+}
+renderPrayers(null);
+
+// Battery
+if('getBattery' in navigator){
+  navigator.getBattery().then(b=>{
+    function up(){
+      const pct=Math.round(b.level*100);
+      document.getElementById('bat-pct').textContent=pct+'%';
+      const f=document.getElementById('bat-fill');
+      f.style.width=pct+'%';
+      f.className='bat-fill'+(pct<=20?' low':pct<=40?' mid':'');
+      document.getElementById('bat-status').textContent=b.charging?'Charging':'On battery';
+    }
+    up();b.addEventListener('levelchange',up);b.addEventListener('chargingchange',up);
+  });
+}else{document.getElementById('bat-pct').textContent='N/A';document.getElementById('bat-status').textContent='API unavailable';}
+
+// Music
+let mPlaying=false,mTimer=null,mProg=0;
+function syncMedia(){
+  if(!('mediaSession' in navigator))return;
+  const meta=navigator.mediaSession.metadata;
+  if(meta){
+    document.getElementById('m-track').textContent=meta.title||'Unknown';
+    document.getElementById('m-artist').textContent=[meta.artist,meta.album].filter(Boolean).join(' · ')||'—';
+  }
+}
+function mPlay(){
+  mPlaying=!mPlaying;
+  document.getElementById('m-play').textContent=mPlaying?'⏸':'▶';
+  mPlaying?mTimer=setInterval(()=>{mProg=(mProg+.4)%100;document.getElementById('m-fill').style.width=mProg+'%';},300):clearInterval(mTimer);
+  syncMedia();
+}
+function mPrev(){syncMedia();}function mNext(){syncMedia();}
+setInterval(syncMedia,3000);
+
+// Notes
+let notes=[];
+function renderNotes(){
+  document.getElementById('note-list').innerHTML=notes.map((n,i)=>`
+    <li class="ni${n.done?' done':''}">
+      <div class="ni-check" onclick="toggleNote(${i})">✓</div>
+      <span class="ni-txt">${n.text}</span>
+      <button class="ni-del" onclick="delNote(${i})">×</button>
+    </li>`).join('');
+}
+function addNote(){
+  const inp=document.getElementById('ni-input'),txt=inp.value.trim();
+  if(!txt)return;notes.push({text:txt,done:false});inp.value='';renderNotes();
+}
+function toggleNote(i){notes[i].done=!notes[i].done;renderNotes();}
+function delNote(i){notes.splice(i,1);renderNotes();}
+document.getElementById('ni-input').addEventListener('keydown',e=>{if(e.key==='Enter')addNote();});
+renderNotes();
+</script>
+</body>
+</html>
